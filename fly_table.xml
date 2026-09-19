@@ -1,0 +1,62 @@
+<mujoco model="fly_pingpong_scene">
+    <compiler angle="degree" coordinate="local"/>
+    <!-- 2ms 高頻率步長 -->
+    <option gravity="0 0 -9.81" timestep="0.002" integrator="implicitfast">
+    <!-- DeepMind 官方剛體碰撞與極限穩定度參數 -->
+    <flag contact="enable" energy="enable"/>
+</option>
+<default>
+    <!--
+      Keep contacts well conditioned.  The previous damping ratio (0.08) made
+      a 2.7 g ball extremely under-damped, which is the main cause of the ball
+      gaining energy and "exploding" after a table contact.
+    -->
+    <geom solref="0.008 0.7" solimp="0.90 0.99 0.002" friction="0.35 0.005 0.0001"/>
+</default>
+
+    <worldbody>
+        <light pos="0 0 4" dir="0 0 -1"/>
+        <geom name="floor" type="plane" size="5 5 0.1" rgba="0.8 0.8 0.8 1"/>
+
+        <!-- 標準桌球台 -->
+        <body name="table" pos="0 0 0.38">
+            <!-- Ball/table rebound is resolved explicitly in dm_tt_env.py.
+                 Disabling this contact avoids a stiff 2.7 g contact injecting
+                 numerical energy into the free joint. -->
+            <geom name="table_top" type="box" size="1.37 0.7625 0.02" contype="0" conaffinity="0" rgba="0.1 0.5 0.2 1" friction="0.5 0.005 0.0001"/>
+            <geom name="net" type="box" size="0.01 0.7625 0.076" pos="0 0 0.096" rgba="1 1 1 0.6"/>
+        </body>
+
+        <!-- 桌球 (標準 2.7g) -->
+        <body name="ball" pos="0.8 0 0.8">
+            <joint name="ball_joint" type="free"/>
+            <geom name="ball_geom" type="sphere" size="0.02" mass="0.0027" rgba="1 0.5 0 1" friction="0.5 0.005 0.0001"/>
+        </body>
+
+        <!-- 蒼蠅與球拍 -->
+        <!-- The slide coordinates are world coordinates: do not add a second
+             body offset, otherwise reset positions silently move outside the table. -->
+        <body name="fly" pos="0 0 0">
+            <joint name="fly_x" type="slide" axis="1 0 0" range="-1.25 -0.15" damping="0.15"/>
+            <joint name="fly_y" type="slide" axis="0 1 0" range="-0.70 0.70" damping="0.15"/>
+            <joint name="fly_z" type="slide" axis="0 0 1" range="0.15 1.30" damping="0.15"/>
+
+            <geom name="fly_body" type="ellipsoid" size="0.08 0.05 0.04" rgba="0.2 0.2 0.2 1" mass="0.01"/>
+
+            <!-- 球拍 (高摩擦海綿膠皮) -->
+            <body name="paddle" pos="0.10 0 0">
+                <joint name="paddle_hinge" type="hinge" axis="0 0 1" range="-45 45" damping="0.03"/>
+                <!-- A cylinder's axis is Z by default.  Rotate it so its face
+                     points along X, toward an incoming ball. -->
+                <geom name="paddle_geom" type="cylinder" size="0.1 0.005" euler="0 90 0" rgba="0.8 0.1 0.1 1" mass="0.005" friction="0.5 0.005 0.0001"/>
+            </body>
+        </body>
+    </worldbody>
+
+    <actuator>
+        <motor joint="fly_x" gear="3.0"/>
+        <motor joint="fly_y" gear="3.0"/>
+        <motor joint="fly_z" gear="3.0"/>
+        <motor joint="paddle_hinge" gear="5.0"/>
+    </actuator>
+</mujoco>
