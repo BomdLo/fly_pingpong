@@ -1,0 +1,66 @@
+<mujoco model="fly_pingpong_scene_2p">
+    <compiler angle="degree" coordinate="local"/>
+    <option gravity="0 0 -9.81" timestep="0.002" integrator="implicitfast">
+        <flag contact="enable" energy="enable"/>
+    </option>
+    <default>
+        <geom solref="0.008 0.7" solimp="0.90 0.99 0.002" friction="0.35 0.005 0.0001"/>
+    </default>
+
+    <worldbody>
+        <light pos="0 0 4" dir="0 0 -1"/>
+        <geom name="floor" type="plane" size="5 5 0.1" rgba="0.8 0.8 0.8 1"/>
+
+        <!-- 桌球台 -->
+        <body name="table" pos="0 0 0.38">
+            <geom name="table_top" type="box" size="1.37 0.7625 0.02" contype="0" conaffinity="0" rgba="0.1 0.5 0.2 1" friction="0.5 0.005 0.0001"/>
+            <geom name="net" type="box" size="0.01 0.7625 0.076" pos="0 0 0.096" rgba="1 1 1 0.6"/>
+        </body>
+
+        <!-- 桌球 -->
+        <body name="ball" pos="0.8 0 0.8">
+            <joint name="ball_joint" type="free"/>
+            <!-- The small ball is resolved analytically by RallyTableTennisEnv.
+                 Disable compliant rigid contacts, which otherwise add energy at
+                 this mass scale. -->
+            <geom name="ball_geom" type="sphere" size="0.02" mass="0.0027" contype="0" conaffinity="0" rgba="1 0.5 0 1" friction="0.5 0.005 0.0001"/>
+        </body>
+
+        <!-- P1 (左半場) -->
+        <body name="fly_1" pos="0 0 0">
+            <joint name="fly_1_x" type="slide" axis="1 0 0" range="-1.25 -0.15" damping="0.15"/>
+            <joint name="fly_1_y" type="slide" axis="0 1 0" range="-0.70 0.70" damping="0.15"/>
+            <joint name="fly_1_z" type="slide" axis="0 0 1" range="0.15 1.30" damping="0.15"/>
+            <geom name="fly_1_body" type="ellipsoid" size="0.08 0.05 0.04" rgba="0.2 0.2 0.2 1" mass="0.01"/>
+            <body name="paddle_1" pos="0.10 0 0">
+                <joint name="paddle_1_hinge" type="hinge" axis="0 0 1" range="-45 45" damping="0.03"/>
+                <geom name="paddle_1_geom" type="cylinder" size="0.1 0.005" euler="0 90 0" contype="0" conaffinity="0" rgba="0.8 0.1 0.1 1" mass="0.005" friction="0.5 0.005 0.0001"/>
+            </body>
+        </body>
+
+        <!-- P2 (右半場對稱) -->
+        <body name="fly_2" pos="0 0 0">
+            <joint name="fly_2_x" type="slide" axis="1 0 0" range="0.15 1.25" damping="0.15"/>
+            <joint name="fly_2_y" type="slide" axis="0 1 0" range="-0.70 0.70" damping="0.15"/>
+            <joint name="fly_2_z" type="slide" axis="0 0 1" range="0.15 1.30" damping="0.15"/>
+            <geom name="fly_2_body" type="ellipsoid" size="0.08 0.05 0.04" rgba="0.2 0.2 0.8 1" mass="0.01"/>
+            <body name="paddle_2" pos="-0.10 0 0">
+                <joint name="paddle_2_hinge" type="hinge" axis="0 0 1" range="-45 45" damping="0.03"/>
+                <geom name="paddle_2_geom" type="cylinder" size="0.1 0.005" euler="0 90 0" contype="0" conaffinity="0" rgba="0.1 0.1 0.8 1" mass="0.005" friction="0.5 0.005 0.0001"/>
+            </body>
+        </body>
+    </worldbody>
+
+    <actuator>
+        <!-- P1 -->
+        <motor joint="fly_1_x" gear="3.0"/>
+        <motor joint="fly_1_y" gear="3.0"/>
+        <motor joint="fly_1_z" gear="3.0"/>
+        <motor joint="paddle_1_hinge" gear="5.0"/>
+        <!-- P2 -->
+        <motor joint="fly_2_x" gear="3.0"/>
+        <motor joint="fly_2_y" gear="3.0"/>
+        <motor joint="fly_2_z" gear="3.0"/>
+        <motor joint="paddle_2_hinge" gear="5.0"/>
+    </actuator>
+</mujoco>
